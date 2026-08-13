@@ -1,0 +1,31 @@
+name: "崩溃报告 / Crash report"
+description: "报告启动或运行崩溃 / Report a startup or runtime crash"
+title: "[Crash] "
+labels: ["bug", "crash"]
+body:
+  - type: markdown
+    attributes:
+      value: "日志可能包含私人路径；上传前请检查并遮盖。Logs may contain personal paths; review and redact them before uploading."
+  - type: input
+    id: version
+    attributes:
+      label: "Clopen 版本 / Clopen version"
+    validations:
+      required: true
+  - type: input
+    id: windows
+    attributes:
+      label: "Windows 版本 / Windows version"
+    validations:
+      required: true
+  - type: textarea
+    id: action
+    attributes:
+      label: "崩溃前的操作 / Action before the crash"
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: "已脱敏日志 / Redacted logs"
+      render: shell

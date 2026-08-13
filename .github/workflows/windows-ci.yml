@@ -1,0 +1,64 @@
+name: Windows CI
+
+on:
+  push:
+    branches: ["main"]
+    tags: ["v*"]
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test-and-build:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    env:
+      QT_QPA_PLATFORM: offscreen
+      PYTHONDONTWRITEBYTECODE: "1"
+      PYTHONUTF8: "1"
+    steps:
+      - name: Checkout / 检出源码
+        uses: actions/checkout@v4
+
+      - name: Set up Python / 配置 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install / 安装依赖
+        run: python -m pip install --upgrade pip && python -m pip install -e ".[build]"
+
+      - name: Static syntax check / 静态语法检查
+        run: python tools/static_check.py
+
+      - name: Unit tests / 单元测试
+        run: python -m unittest discover -s tests -v
+
+      - name: Release self-check / 发布自检
+        run: python tools/release_selfcheck.py
+
+      - name: Source smoke tests / 源码冒烟测试
+        shell: pwsh
+        run: |
+          python src/clopen.py --smoke-test
+          python src/clopen.py --ui-self-test
+
+      - name: Build portable application / 构建便携应用
+        shell: pwsh
+        run: ./build.ps1
+
+      - name: Packaged smoke test / 打包后冒烟测试
+        shell: pwsh
+        run: ./dist/Clopen/Clopen.exe --smoke-test
+
+      - name: Upload CI artifact / 上传 CI 构建产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: Clopen-Classic-${{ github.sha }}
+          path: dist/Clopen
+          if-no-files-found: error
+          retention-days: 7

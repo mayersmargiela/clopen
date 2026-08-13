@@ -1,0 +1,40 @@
+name: "Bug 报告 / Bug report"
+description: "报告可复现的问题 / Report a reproducible problem"
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: "请移除用户名、个人路径和软件列表等私人信息。Remove usernames, personal paths, and application lists."
+  - type: input
+    id: version
+    attributes:
+      label: "Clopen 版本 / Clopen version"
+      placeholder: "v0.2.7"
+    validations:
+      required: true
+  - type: input
+    id: windows
+    attributes:
+      label: "Windows 版本 / Windows version"
+      placeholder: "Windows 11 24H2"
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: "复现步骤 / Steps to reproduce"
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: "预期结果 / Expected result"
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: "实际结果 / Actual result"
+    validations:
+      required: true

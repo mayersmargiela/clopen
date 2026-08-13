@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "clopen"
+version = "0.2.7"
+description = "A Windows launcher that opens and safely closes application groups."
+requires-python = ">=3.11"
+authors = [{ name = "Mayers" }]
+dependencies = ["PySide6>=6.8"]
+
+[project.optional-dependencies]
+build = ["pyinstaller>=6.0"]
+
+[project.scripts]
+clopen = "clopen.app:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+
+[tool.setuptools.package-data]
+clopen = ["resources/*"]
