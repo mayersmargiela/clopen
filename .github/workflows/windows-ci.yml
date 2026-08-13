@@ -21,10 +21,13 @@ jobs:
       PYTHONUTF8: "1"
     steps:
       - name: Checkout / 检出源码
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
+
+      - name: Release self-check / 发布自检
+        run: python tools/release_selfcheck.py
 
       - name: Set up Python / 配置 Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
           cache: pip
@@ -37,9 +40,6 @@ jobs:
 
       - name: Unit tests / 单元测试
         run: python -m unittest discover -s tests -v
-
-      - name: Release self-check / 发布自检
-        run: python tools/release_selfcheck.py
 
       - name: Source smoke tests / 源码冒烟测试
         shell: pwsh
