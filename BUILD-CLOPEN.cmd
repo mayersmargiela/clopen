@@ -1,10 +1,10 @@
 @echo off
 setlocal EnableExtensions
 cd /d "%~dp0"
-title Clopen Builder
+title Clopen Liquid Glass Builder
 
 echo ========================================
-echo           Clopen Windows Builder
+echo        Clopen Liquid Glass Builder
 echo ========================================
 echo.
 
@@ -61,17 +61,17 @@ echo Running release self-check...
 "%VENV_PY%" "%~dp0tools\release_selfcheck.py"
 if errorlevel 1 goto :failed
 
-echo [3/4] Building Clopen.exe...
+echo [3/4] Building Clopen-LiquidGlass.exe...
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0build.ps1"
 if errorlevel 1 goto :failed
 
 echo [4/4] Build complete.
-set "OUTDIR=%~dp0dist\Clopen"
+set "OUTDIR=%~dp0dist\Clopen-LiquidGlass"
 echo.
 echo Output folder:
 echo %OUTDIR%
 echo.
-if exist "%OUTDIR%\Clopen.exe" explorer.exe "%OUTDIR%"
+if exist "%OUTDIR%\Clopen-LiquidGlass.exe" explorer.exe "%OUTDIR%"
 pause
 exit /b 0
 

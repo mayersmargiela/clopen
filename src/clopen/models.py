@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field, fields
+from dataclasses import dataclass, field
 
 
 @dataclass
@@ -17,17 +17,30 @@ class AppEntry:
 
     @classmethod
     def from_dict(cls, data: dict) -> "AppEntry":
-        values = {}
-        for definition in fields(cls):
-            default = definition.default
-            raw_value = data.get(definition.name, default)
-            values[definition.name] = (
-                bool(raw_value) if isinstance(default, bool) else str(raw_value)
-            )
-        return cls(**values)
+        return cls(
+            name=str(data.get("name", "")),
+            path=str(data.get("path", "")),
+            arguments=str(data.get("arguments", "")),
+            working_dir=str(data.get("working_dir", "")),
+            url=str(data.get("url", "")),
+            is_uwp=bool(data.get("is_uwp", False)),
+            is_folder=bool(data.get("is_folder", False)),
+            is_file=bool(data.get("is_file", False)),
+            run_as_admin=bool(data.get("run_as_admin", False)),
+        )
 
     def to_dict(self) -> dict:
-        return {definition.name: getattr(self, definition.name) for definition in fields(self)}
+        return {
+            "name": self.name,
+            "path": self.path,
+            "arguments": self.arguments,
+            "working_dir": self.working_dir,
+            "url": self.url,
+            "is_uwp": self.is_uwp,
+            "is_folder": self.is_folder,
+            "is_file": self.is_file,
+            "run_as_admin": self.run_as_admin,
+        }
 
     @property
     def is_external(self) -> bool:

@@ -44,8 +44,9 @@ jobs:
       - name: Source smoke tests / 源码冒烟测试
         shell: pwsh
         run: |
-          python src/clopen.py --smoke-test
-          python src/clopen.py --ui-self-test
+          python tools/qml_smoke.py
+          python tools/runtime_chain_smoke.py
+          python tools/windows_hotkey_smoke.py
 
       - name: Build portable application / 构建便携应用
         shell: pwsh
@@ -53,12 +54,19 @@ jobs:
 
       - name: Packaged smoke test / 打包后冒烟测试
         shell: pwsh
-        run: ./dist/Clopen/Clopen.exe --smoke-test
+        run: |
+          $process = Start-Process ./dist/Clopen-LiquidGlass/Clopen-LiquidGlass.exe -PassThru
+          Start-Sleep -Seconds 5
+          if ($process.HasExited) {
+            throw "Packaged Clopen exited unexpectedly with code $($process.ExitCode)."
+          }
+          Stop-Process -Id $process.Id -Force
+          Write-Output "PASS - packaged Clopen stayed running for 5 seconds"
 
       - name: Upload CI artifact / 上传 CI 构建产物
         uses: actions/upload-artifact@v5
         with:
-          name: Clopen-Classic-${{ github.sha }}
-          path: dist/Clopen
+          name: Clopen-LiquidGlass-${{ github.sha }}
+          path: dist/Clopen-LiquidGlass
           if-no-files-found: error
           retention-days: 7

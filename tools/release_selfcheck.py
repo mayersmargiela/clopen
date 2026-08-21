@@ -5,11 +5,10 @@ import re
 
 
 ROOT = Path(__file__).resolve().parents[1]
-TEXT_SUFFIXES = {".py", ".toml", ".ps1", ".cmd", ".txt"}
+TEXT_SUFFIXES = {".py", ".toml", ".ps1", ".cmd", ".txt", ".md", ".qml", ".yml", ".yaml"}
 FORBIDDEN_DIRS = {".venv", "build", "dist", "__pycache__", "artifacts"}
 OLD_UNDERSCORE = "mayers" + "_batch"
 OLD_HYPHEN = "mayers" + "-batch"
-OLD_UI_WORDING = "liquid" + " glass"
 GLOBAL_KILL_COMMANDS = ("task" + "kill", "wmic" + " process", "kill" + "all")
 KNOWN_SOURCE_NAME = "batch" + "go"
 PRIVATE_PATH_MARKERS = ("c:\\users\\", "d:\\agents for mayers\\", "appdata\\local\\temp")
@@ -43,8 +42,12 @@ def main() -> int:
     config = (ROOT / "src" / "clopen" / "config.py").read_text(encoding="utf-8")
     launcher = (ROOT / "src" / "clopen" / "launcher.py").read_text(encoding="utf-8")
     process_control = (ROOT / "src" / "clopen" / "process_control.py").read_text(encoding="utf-8")
-    hotkey = (ROOT / "src" / "clopen" / "hotkey.py").read_text(encoding="utf-8")
-    entry = (ROOT / "src" / "clopen.py").read_text(encoding="utf-8")
+    package_init = (ROOT / "src" / "clopen" / "__init__.py").read_text(encoding="utf-8")
+    qml_app = (ROOT / "src" / "clopen" / "qml_app.py").read_text(encoding="utf-8")
+    main_qml = (ROOT / "src" / "clopen" / "qml" / "Main.qml").read_text(encoding="utf-8")
+    glass_button = (ROOT / "src" / "clopen" / "qml" / "GlassButton.qml").read_text(encoding="utf-8")
+    entry = (ROOT / "src" / "clopen_entry.py").read_text(encoding="utf-8")
+    module_entry = (ROOT / "src" / "clopen" / "__main__.py").read_text(encoding="utf-8")
 
     generated_dirs = [
         path.relative_to(ROOT).as_posix()
@@ -58,20 +61,25 @@ def main() -> int:
     ]
 
     checks = [
-        ("Classic version remains 0.2.7", 'version = "0.2.7"' in pyproject),
-        ("console command is clopen", 'clopen = "clopen.app:main"' in pyproject),
-        ("package data belongs to clopen", 'clopen = ["resources/*"]' in pyproject),
+        ("Liquid Glass version is 0.6.0 everywhere", 'version = "0.6.0"' in pyproject and '__version__ = "0.6.0"' in package_init),
+        ("console command uses the Liquid Glass shell", 'clopen = "clopen.qml_app:main"' in pyproject),
+        ("package data includes resources and QML", 'clopen = ["resources/*", "qml/*.qml"]' in pyproject),
         ("clopen package directory exists", (ROOT / "src" / "clopen" / "__init__.py").is_file()),
         ("old package directory is absent", not (ROOT / "src" / OLD_UNDERSCORE).exists()),
         ("old identifiers are absent", OLD_UNDERSCORE not in text.lower() and OLD_HYPHEN not in text.lower()),
         ("known-source name is absent from public text", KNOWN_SOURCE_NAME not in text.lower()),
-        ("obsolete UI wording is absent", OLD_UI_WORDING not in text.lower()),
         ("required public documents exist", all((ROOT / name).is_file() for name in REQUIRED_PUBLIC_FILES)),
         ("personal machine paths are absent", not any(marker in text.lower() for marker in PRIVATE_PATH_MARKERS)),
         ("common secret formats are absent", not any(pattern.search(text) for pattern in SECRET_PATTERNS)),
         ("config uses APPDATA/Clopen/config.json", '_default_appdata() / "Clopen" / "config.json"' in config),
-        ("entry imports the clopen package", "from clopen.config import ConfigStore" in entry),
-        ("Ctrl+Shift+E registration remains", 'ord("E")' in hotkey and "RegisterHotKey" in hotkey),
+        ("entry imports the Liquid Glass shell", "from clopen.qml_app import main" in entry),
+        ("python -m clopen uses the Liquid Glass shell", "from .qml_app import main" in module_entry),
+        ("Liquid Glass QML files exist", all((ROOT / "src" / "clopen" / "qml" / name).is_file() for name in ("Main.qml", "GlassPane.qml", "GlassButton.qml", "QuickLauncher.qml", "TrayPopup.qml"))),
+        ("main layout remains 920x600 / sidebar 232", "width: 920" in main_qml and "height: 600" in main_qml and "Layout.preferredWidth: 232" in main_qml),
+        ("glass action buttons remain present", main_qml.count("GlassButton {") >= 8 and "GlassPane" in glass_button),
+        ("Ctrl+Shift+E uses physical-key polling", "GetAsyncKeyState" in qml_app and "_hotkey_watch_loop" in qml_app),
+        ("hotkey callback returns to the Qt GUI thread", "hotkeyTriggered" in qml_app and "QueuedConnection" in qml_app),
+        ("quick launcher is persistent QWidget popup", "class QuickLauncherPopup" in qml_app and "Qt.WindowType.Popup" in qml_app),
         ("managed launches register a process handle", "session.add_handle" in launcher),
         ("external launch paths stay unmanaged", 'EntryResult(entry.name, "unmanaged"' in launcher),
         ("session close uses Job Object ownership", "TerminateJobObject" in process_control),

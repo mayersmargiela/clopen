@@ -6,13 +6,16 @@
 
 Clopen 是一个面向 Windows 的软件组合启动器。你可以把工作、创作或游戏需要的软件保存为组合，一次打开，并只关闭本次由 Clopen 启动且登记成功的进程。
 
-### Classic v0.2.7
+### Liquid Glass v0.6.0
 
 - 创建、编辑和运行软件组合。
 - 搜索本机已安装软件并添加到组合。
-- 使用 `Ctrl+Shift+E` 打开快捷菜单。
+- 使用 `Ctrl+Shift+E` 从任意位置打开原生玻璃快捷菜单；快捷键采用后台物理按键检测，不依赖 `RegisterHotKey`。
+- 主窗口、组合编辑器、软件选择器、设置和托盘菜单使用统一的 Liquid Glass 界面，并自动跟随 Windows 深浅外观。
 - 会话级安全关闭：只处理本次由 Clopen 启动并记录的进程。
 - 配置保存在 `%APPDATA%\Clopen\config.json`，不上传软件列表或配置。
+
+完整变更见 [v0.6.0 发布说明](docs/releases/v0.6.0.md)。
 
 ### 安全边界
 
@@ -52,13 +55,16 @@ Clopen 在本地运行。详情见 [PRIVACY.md](PRIVACY.md)。项目采用 [MIT 
 
 Clopen is a Windows application-group launcher. Save the apps you need for work, creation, or gaming, open them together, and close only the processes that Clopen started and registered during the current session.
 
-### Classic v0.2.7
+### Liquid Glass v0.6.0
 
 - Create, edit, and run application groups.
 - Search installed applications and add them to a group.
-- Open the quick menu with `Ctrl+Shift+E`.
+- Open the native glass quick menu from anywhere with `Ctrl+Shift+E`; the shortcut uses background physical-key detection instead of `RegisterHotKey`.
+- Use a consistent Liquid Glass interface across the main window, group editor, software picker, settings, and tray menu, following the Windows appearance automatically.
 - Session-safe closing: only processes started and recorded by the current Clopen session are handled.
 - Configuration stays at `%APPDATA%\Clopen\config.json`; application lists and settings are not uploaded.
+
+See the complete [v0.6.0 release notes](docs/releases/v0.6.0.md).
 
 ### Safety boundaries
 

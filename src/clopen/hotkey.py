@@ -49,11 +49,17 @@ if os.name == "nt":
 
 
 class GlobalHotkey:
-    """Register Ctrl+Shift+E and dispatch it from the current thread queue."""
+    """Register Ctrl+Shift+E and dispatch it to a stable native HWND when supplied."""
 
-    def __init__(self, callback: Callable[[], None]):
+    def __init__(self, callback: Callable[[], None], *, hwnd: int | None = None):
         self.callback = callback
         self.registered = False
+        self.hwnd = int(hwnd or 0)
+
+    def set_hwnd(self, hwnd: int | None) -> None:
+        if self.registered:
+            raise HotkeyError("快捷键已注册，不能更换窗口句柄")
+        self.hwnd = int(hwnd or 0)
 
     def register(self) -> None:
         if os.name != "nt":
@@ -61,13 +67,14 @@ class GlobalHotkey:
         if self.registered:
             return
         modifiers = _MOD_CONTROL | _MOD_SHIFT | _MOD_NOREPEAT
-        if not _user32.RegisterHotKey(None, _HOTKEY_ID, modifiers, ord("E")):
+        target = self.hwnd or None
+        if not _user32.RegisterHotKey(target, _HOTKEY_ID, modifiers, ord("E")):
             error = ctypes.get_last_error()
             raise HotkeyError(f"Ctrl+Shift+E 注册失败（Windows 错误 {error}）")
         self.registered = True
 
     def poll(self) -> None:
-        if os.name != "nt" or not self.registered:
+        if os.name != "nt" or not self.registered or self.hwnd:
             return
         message = _Message()
         while _user32.PeekMessageW(
@@ -81,7 +88,7 @@ class GlobalHotkey:
                 self.callback()
 
     def matches_native_message(self, message_address: int) -> bool:
-        """Dispatch a WM_HOTKEY observed by Qt's native event filter."""
+        """Dispatch a WM_HOTKEY observed by a QWidget/native event filter."""
         if os.name != "nt" or not self.registered or not message_address:
             return False
         message = _Message.from_address(message_address)
@@ -92,5 +99,5 @@ class GlobalHotkey:
 
     def unregister(self) -> None:
         if os.name == "nt" and self.registered:
-            _user32.UnregisterHotKey(None, _HOTKEY_ID)
+            _user32.UnregisterHotKey(self.hwnd or None, _HOTKEY_ID)
         self.registered = False

@@ -1,3 +1,3 @@
-from .app import main
+from .qml_app import main
 
 main()

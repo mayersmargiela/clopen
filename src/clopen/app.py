@@ -213,6 +213,102 @@ QMenu::separator { background: #323A48; }
 """
 
 
+LIQUID_DIALOG_STYLE = r"""
+* {
+    color: #F5F7FA;
+    font-family: "Microsoft YaHei UI";
+    font-size: 13px;
+}
+QDialog, QMessageBox {
+    background: rgba(20, 22, 28, 52);
+    border: none;
+}
+QLabel#pageTitle { font-size: 22px; font-weight: 700; color: #FFFFFF; }
+QLabel#eyebrow { color: rgba(242,246,252,205); font-size: 11px; font-weight: 600; }
+QLabel#muted { color: rgba(232,237,245,190); font-size: 12px; }
+QLineEdit, QComboBox, QListWidget {
+    background: rgba(255, 255, 255, 24);
+    border: 1px solid rgba(255, 255, 255, 44);
+    border-radius: 10px;
+    padding: 8px 10px;
+    color: #F7F8FB;
+    selection-background-color: rgba(96, 127, 255, 180);
+}
+QLineEdit:focus, QComboBox:focus, QListWidget:focus {
+    border: 1px solid rgba(180, 198, 255, 155);
+    background: rgba(255, 255, 255, 30);
+}
+QListWidget::item {
+    min-height: 42px;
+    border-radius: 9px;
+    padding-left: 8px;
+}
+QListWidget::item:hover { background: rgba(255,255,255,18); }
+QListWidget::item:selected { background: rgba(98,125,255,45); }
+QPushButton, QDialogButtonBox QPushButton {
+    color: #F5F7FA;
+    background: rgba(255, 255, 255, 20);
+    border: 1px solid rgba(255, 255, 255, 42);
+    border-radius: 10px;
+    padding: 8px 12px;
+    text-align: center;
+    min-height: 18px;
+}
+QPushButton:hover, QDialogButtonBox QPushButton:hover {
+    background: rgba(255,255,255,32);
+    border-color: rgba(255,255,255,60);
+}
+QPushButton:pressed, QDialogButtonBox QPushButton:pressed { background: rgba(255,255,255,42); }
+QPushButton:disabled, QDialogButtonBox QPushButton:disabled { color: rgba(245,247,250,90); border-color: rgba(255,255,255,20); }
+QPushButton#primaryButton, QDialogButtonBox QPushButton[text="保存"] {
+    background: rgba(78, 111, 255, 72);
+    border-color: rgba(190, 204, 255, 92);
+    font-weight: 600;
+}
+QPushButton#quietButton { background: rgba(255,255,255,14); }
+QCheckBox { spacing: 8px; color: #F4F6FA; }
+QScrollBar:vertical { width: 7px; background: transparent; margin: 5px 0; }
+QScrollBar::handle:vertical { background: rgba(255,255,255,48); border-radius: 3px; min-height: 24px; }
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0; }
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: transparent; }
+"""
+
+
+def _prepare_liquid_dialog(dialog: QDialog) -> None:
+    app = QApplication.instance()
+    if app is None or not bool(app.property("clopenLiquidGlass")):
+        return
+    dialog.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
+    dialog.setStyleSheet(LIQUID_DIALOG_STYLE)
+    dialog.setWindowOpacity(1.0)
+    QTimer.singleShot(0, lambda d=dialog: _apply_liquid_blur(d))
+
+
+def _apply_liquid_blur(widget: QWidget) -> None:
+    if os.name != "nt":
+        return
+    try:
+        hwnd = ctypes.c_void_p(int(widget.winId()))
+        dwm = ctypes.windll.dwmapi
+        user32 = ctypes.windll.user32
+        backdrop_none = ctypes.c_int(1)
+        dwm.DwmSetWindowAttribute(hwnd, 38, ctypes.byref(backdrop_none), ctypes.sizeof(backdrop_none))
+
+        class ACCENT_POLICY(ctypes.Structure):
+            _fields_ = [("AccentState", ctypes.c_int), ("AccentFlags", ctypes.c_int), ("GradientColor", ctypes.c_uint), ("AnimationId", ctypes.c_int)]
+
+        class WINDOWCOMPOSITIONATTRIBDATA(ctypes.Structure):
+            _fields_ = [("Attribute", ctypes.c_int), ("Data", ctypes.c_void_p), ("SizeOfData", ctypes.c_size_t)]
+
+        policy = ACCENT_POLICY(3, 0, 0x00000000, 0)
+        data = WINDOWCOMPOSITIONATTRIBDATA(19, ctypes.cast(ctypes.pointer(policy), ctypes.c_void_p), ctypes.sizeof(policy))
+        user32.SetWindowCompositionAttribute(hwnd, ctypes.byref(data))
+        border = ctypes.c_uint(0xFFFFFFFE)
+        dwm.DwmSetWindowAttribute(hwnd, 34, ctypes.byref(border), ctypes.sizeof(border))
+    except (AttributeError, OSError, TypeError, ValueError):
+        return
+
+
 def _clear_layout(layout: QVBoxLayout) -> None:
     while layout.count():
         item = layout.takeAt(0)
@@ -503,6 +599,7 @@ class SoftwarePickerDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle("添加软件")
         self.resize(680, 560)
+        _prepare_liquid_dialog(self)
         self.apps = list(apps) if apps is not None else []
         self.visible_apps: list[DiscoveredApp] = []
         self.manual_requested = False
@@ -642,6 +739,7 @@ class EntryEditorDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle("编辑启动项" if entry else "添加启动项")
         self.setMinimumWidth(520)
+        _prepare_liquid_dialog(self)
         source = copy.deepcopy(entry) if entry else AppEntry(run_as_admin=True)
 
         layout = QVBoxLayout(self)
@@ -767,6 +865,7 @@ class GroupEditorDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle("编辑组合" if group else "新建组合")
         self.resize(640, 470)
+        _prepare_liquid_dialog(self)
         self.entries = copy.deepcopy(group.entries) if group else []
         self.reserved_names = {name.casefold() for name in (reserved_names or set())}
 

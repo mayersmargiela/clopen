@@ -165,7 +165,13 @@ def _registry_apps() -> list[DiscoveredApp]:
 
 
 def _shell_apps() -> list[DiscoveredApp]:
-    """Read launchable Start-menu shortcuts plus packaged Windows apps."""
+    """Read user-facing desktop software shortcuts from the Start menu.
+
+    The default software library intentionally excludes packaged/UWP shell
+    entries. UWP remains available through Clopen's manual add flow, but the
+    searchable library should look like a normal software launcher rather than
+    a Windows component inventory.
+    """
     if os.name != "nt":
         return []
 
@@ -196,18 +202,6 @@ $rows = @(
         }
     }
 
-    Get-StartApps | ForEach-Object {
-        $appId = [string]$_.AppID
-        if ($appId -and $appId.Contains('!')) {
-            [pscustomobject]@{
-                Name = [string]$_.Name
-                Path = ''
-                AppID = $appId
-                Arguments = ''
-                WorkingDirectory = ''
-            }
-        }
-    }
 )
 $rows | ConvertTo-Json -Compress
 '''
@@ -320,7 +314,7 @@ def discover_apps(*, refresh: bool = False) -> list[DiscoveredApp]:
     # Start-menu names are usually the most human-friendly, so put them first.
     # Registry discovery intentionally uses App Paths only; the Uninstall
     # registry inventory is not a software launcher catalog.
-    discovered = _dedupe_apps([*_shell_apps(), *_registry_apps()])
+    discovered = [app for app in _dedupe_apps([*_shell_apps(), *_registry_apps()]) if app.path]
     with _cache_lock:
         _cached_apps = tuple(discovered)
     return list(discovered)

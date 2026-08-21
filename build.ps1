@@ -29,14 +29,15 @@ if ($LASTEXITCODE -ne 0) {
     throw 'PyInstaller is not installed. Run: python -m pip install -e ".[build]"'
 }
 
-$entryPoint = Join-Path $projectRoot "src\clopen.py"
+$entryPoint = Join-Path $projectRoot "src\clopen_entry.py"
 $sourcePath = Join-Path $projectRoot "src"
 $distPath = Join-Path $projectRoot "dist"
 $buildPath = Join-Path $projectRoot "build"
 $resourcePath = Join-Path $projectRoot "src\clopen\resources"
+$qmlPath = Join-Path $projectRoot "src\clopen\qml"
 $iconPath = Join-Path $resourcePath "clopen.ico"
 
-$oldArtifactDir = Join-Path $distPath "Clopen"
+$oldArtifactDir = Join-Path $distPath "Clopen-LiquidGlass"
 if (Test-Path -LiteralPath $oldArtifactDir) {
     Remove-Item -LiteralPath $oldArtifactDir -Recurse -Force
 }
@@ -46,9 +47,13 @@ if (Test-Path -LiteralPath $oldArtifactDir) {
     --clean `
     --onedir `
     --windowed `
-    --name "Clopen" `
+    --name "Clopen-LiquidGlass" `
     --icon $iconPath `
     --add-data "$resourcePath;clopen/resources" `
+    --add-data "$qmlPath;clopen/qml" `
+    --hidden-import PySide6.QtQml `
+    --hidden-import PySide6.QtQuick `
+    --hidden-import PySide6.QtQuickControls2 `
     --paths $sourcePath `
     --distpath $distPath `
     --workpath $buildPath `
@@ -56,10 +61,10 @@ if (Test-Path -LiteralPath $oldArtifactDir) {
     $entryPoint
 
 if ($LASTEXITCODE -ne 0) {
-    throw "PyInstaller failed while building Clopen.exe."
+    throw "PyInstaller failed while building Clopen-LiquidGlass.exe."
 }
 
-$artifact = Join-Path $distPath "Clopen\Clopen.exe"
+$artifact = Join-Path $distPath "Clopen-LiquidGlass\Clopen-LiquidGlass.exe"
 if (-not (Test-Path -LiteralPath $artifact -PathType Leaf)) {
     throw "Expected build artifact was not created: $artifact"
 }
