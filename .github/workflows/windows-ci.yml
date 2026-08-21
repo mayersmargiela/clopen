@@ -45,8 +45,11 @@ jobs:
         shell: pwsh
         run: |
           python tools/qml_smoke.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           python tools/runtime_chain_smoke.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           python tools/windows_hotkey_smoke.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Build portable application / 构建便携应用
         shell: pwsh

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import sys
+import time
 from pathlib import Path
 
 os.environ.setdefault('QT_QPA_PLATFORM', 'offscreen')
@@ -21,6 +22,16 @@ from clopen import qml_app
 def pump(app: QApplication, count: int = 8) -> None:
     for _ in range(count):
         app.processEvents()
+
+
+def wait_for_visibility(app: QApplication, window, expected: bool, timeout: float = 2.0) -> bool:
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        app.processEvents()
+        if window.isVisible() is expected:
+            return True
+        time.sleep(0.02)
+    return window.isVisible() is expected
 
 
 def main() -> int:
@@ -45,21 +56,18 @@ def main() -> int:
     print('PASS - main window loads and becomes visible')
 
     bridge.toggleQuickLauncher()
-    pump(app)
-    if not bridge._quick_popup.isVisible():
+    if not wait_for_visibility(app, bridge._quick_popup, True):
         raise RuntimeError('Quick launcher did not become visible by direct bridge call')
     print('PASS - quick launcher direct show path works')
 
     bridge.toggleQuickLauncher()
-    pump(app)
-    if bridge._quick_popup.isVisible():
+    if not wait_for_visibility(app, bridge._quick_popup, False):
         raise RuntimeError('Quick launcher did not hide on second toggle')
     print('PASS - quick launcher hide path works')
 
     # Validate the exact queued path used by the physical-key worker.
     bridge.hotkeyTriggered.emit()
-    pump(app, 16)
-    if not bridge._quick_popup.isVisible():
+    if not wait_for_visibility(app, bridge._quick_popup, True):
         raise RuntimeError('Queued hotkey signal did not open quick launcher')
     print('PASS - hotkey signal -> GUI -> quick launcher chain works')
 
