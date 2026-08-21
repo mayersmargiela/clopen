@@ -14,7 +14,7 @@ def main() -> int:
     ROOT = Path(__file__).resolve().parents[1]
     sys.path.insert(0, str(ROOT / 'src'))
 
-    from PySide6.QtCore import QTimer
+    from PySide6.QtCore import QEventLoop, QTimer
     from PySide6.QtQml import QQmlApplicationEngine
     from PySide6.QtWidgets import QApplication
     from clopen import qml_app
@@ -64,20 +64,16 @@ def main() -> int:
     popup_probe = PopupProbe()
     bridge._quick_popup = popup_probe
 
-    result = {'ok': False}
-
-    def verify() -> None:
-        result['ok'] = popup_probe.popup_calls == 1 and popup_probe.isVisible()
-        bridge._hotkey_stop.set()
-        popup_probe.hide()
-        native_popup.hide()
-        app.quit()
-
-    QTimer.singleShot(500, verify)
-    app.exec()
+    loop = QEventLoop()
+    QTimer.singleShot(500, loop.quit)
+    loop.exec()
+    result = popup_probe.popup_calls == 1 and popup_probe.isVisible()
+    bridge._hotkey_stop.set()
+    popup_probe.hide()
+    native_popup.hide()
     qml_app._ctrl_shift_e_down = real_probe
 
-    if not result['ok']:
+    if not result:
         raise RuntimeError('physical-hotkey worker did not reach QuickLauncherPopup')
     print('PASS - hotkey worker -> queued Qt signal -> quick popup')
     return 0
