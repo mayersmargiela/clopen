@@ -44,6 +44,10 @@ $env:QT_QPA_PLATFORM = "offscreen"
 
 Clopen 在本地运行。详情见 [PRIVACY.md](PRIVACY.md)。项目采用 [MIT License](LICENSE)，第三方组件许可见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
 
+### 维护
+
+主要维护者、维护责任和验收原则见 [MAINTAINERS.md](MAINTAINERS.md)。已公开发生且可验证的维护事件记录在 [公开维护记录](docs/maintenance/) 中。
+
 ## English
 
 Clopen is a Windows application-group launcher. Save the apps you need for work, creation, or gaming, open them together, and close only the processes that Clopen started and registered during the current session.
@@ -85,3 +89,7 @@ $env:QT_QPA_PLATFORM = "offscreen"
 ### Privacy and licensing
 
 Clopen runs locally. See [PRIVACY.md](PRIVACY.md) for details. The project is distributed under the [MIT License](LICENSE); third-party licenses are listed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
+### Maintenance
+
+See [MAINTAINERS.md](MAINTAINERS.md) for maintainer responsibilities and acceptance principles. Public, verifiable maintenance events are recorded in the [public maintenance record](docs/maintenance/).
